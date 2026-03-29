@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount } from "wagmi";
 import { formatEther, type Address } from "viem";
-import { CONTRACTS, ABIS } from "@/config/contracts";
+import { CONTRACTS } from "@/config/contracts";
 import { useAddLiquidity } from "@/hooks/useAddLiquidity";
 import { useRemoveLiquidity } from "@/hooks/useRemoveLiquidity";
 import { useApprove } from "@/hooks/useApprove";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { usePairInfo } from "@/hooks/usePairInfo";
 
 type Tab = "add" | "remove";
 
@@ -18,8 +18,17 @@ export function PoolCard() {
   const [amountB, setAmountB] = useState("");
   const [lpAmount, setLpAmount] = useState("");
 
-  const { formatted: balanceA } = useTokenBalance(CONTRACTS.tokenA, address);
-  const { formatted: balanceB } = useTokenBalance(CONTRACTS.tokenB, address);
+  // Single multicall: reserves + totalSupply + balances + allowances
+  const {
+    pair: pairAddress,
+    reserve0: r0,
+    reserve1: r1,
+    totalSupply,
+    userLpBalance: lpBalance,
+    formatted: { userToken0Balance: balanceA, userToken1Balance: balanceB, userLpBalance: lpFormatted },
+  } = usePairInfo(CONTRACTS.tokenA, CONTRACTS.tokenB, address);
+
+  const pairExists = !!pairAddress && pairAddress !== "0x0000000000000000000000000000000000000000";
 
   const {
     addLiquidity,
@@ -38,38 +47,6 @@ export function PoolCard() {
   const { approve: approveA, isPending: isApprovingA } = useApprove(CONTRACTS.tokenA);
   const { approve: approveB, isPending: isApprovingB } = useApprove(CONTRACTS.tokenB);
 
-  // Read pair address
-  const { data: pairAddress } = useReadContract({
-    address: CONTRACTS.factory,
-    abi: ABIS.factory,
-    functionName: "getPair",
-    args: [CONTRACTS.tokenA, CONTRACTS.tokenB],
-  });
-
-  const pairExists = !!pairAddress && pairAddress !== "0x0000000000000000000000000000000000000000";
-
-  // Read reserves
-  const { data: reserves } = useReadContract({
-    address: pairAddress as Address | undefined,
-    abi: ABIS.pair,
-    functionName: "getReserves",
-    query: { enabled: pairExists },
-  });
-
-  // Read LP balance
-  const { balance: lpBalance, formatted: lpFormatted } = useTokenBalance(
-    pairAddress as Address,
-    address,
-  );
-
-  // Read LP total supply
-  const { data: lpTotalSupply } = useReadContract({
-    address: pairAddress as Address | undefined,
-    abi: ABIS.pair,
-    functionName: "totalSupply",
-    query: { enabled: pairExists },
-  });
-
   // Approve LP token for router (for remove liquidity)
   const { approve: approveLp, isPending: isApprovingLp } = useApprove(
     pairAddress as Address,
@@ -83,9 +60,6 @@ export function PoolCard() {
   useEffect(() => {
     if (isRemoveSuccess) setLpAmount("");
   }, [isRemoveSuccess]);
-
-  const [r0, r1] = (reserves as [bigint, bigint]) || [0n, 0n];
-  const totalSupply = (lpTotalSupply as bigint) || 0n;
 
   // Calculate share percentage
   const sharePercent = lpBalance && totalSupply > 0n

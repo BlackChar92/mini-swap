@@ -1,0 +1,233 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_factory",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_router",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "factory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAllPairs",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "pairs",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "token0s",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "token1s",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "reserves0",
+        "type": "uint112[]",
+        "internalType": "uint112[]"
+      },
+      {
+        "name": "reserves1",
+        "type": "uint112[]",
+        "internalType": "uint112[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBalances",
+    "inputs": [
+      {
+        "name": "tokens",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "balances",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPairInfo",
+    "inputs": [
+      {
+        "name": "tokenA",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenB",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "info",
+        "type": "tuple",
+        "internalType": "struct MiniMulticall.PairInfo",
+        "components": [
+          {
+            "name": "pair",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "reserve0",
+            "type": "uint112",
+            "internalType": "uint112"
+          },
+          {
+            "name": "reserve1",
+            "type": "uint112",
+            "internalType": "uint112"
+          },
+          {
+            "name": "totalSupply",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "userLpBalance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "userToken0Balance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "userToken1Balance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "token0Allowance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "token1Allowance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lpAllowance",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSwapQuote",
+    "inputs": [
+      {
+        "name": "amountIn",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tokenIn",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenOut",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "quote",
+        "type": "tuple",
+        "internalType": "struct MiniMulticall.SwapQuote",
+        "components": [
+          {
+            "name": "amountOut",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "priceImpactBps",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "reserveIn",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "reserveOut",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "router",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  }
+]

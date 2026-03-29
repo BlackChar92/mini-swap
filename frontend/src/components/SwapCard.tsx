@@ -5,8 +5,8 @@ import { useAccount } from "wagmi";
 import { CONTRACTS } from "@/config/contracts";
 import { useSwap } from "@/hooks/useSwap";
 import { useApprove } from "@/hooks/useApprove";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
-import { useGetAmountOut } from "@/hooks/useGetAmountOut";
+import { useSwapQuote } from "@/hooks/useSwapQuote";
+import { usePairInfo } from "@/hooks/usePairInfo";
 
 export function SwapCard() {
   const { address } = useAccount();
@@ -18,9 +18,11 @@ export function SwapCard() {
   const tokenInLabel = isReversed ? "TKB" : "TKA";
   const tokenOutLabel = isReversed ? "TKA" : "TKB";
 
-  const { formatted: balanceIn } = useTokenBalance(tokenIn, address);
-  const { formatted: balanceOut } = useTokenBalance(tokenOut, address);
-  const { formatted: amountOut, isLoading: isQuoting } = useGetAmountOut(amountIn, tokenIn, tokenOut);
+  const { formatted: pairFormatted } = usePairInfo(CONTRACTS.tokenA, CONTRACTS.tokenB, address);
+  const balanceIn = isReversed ? pairFormatted.userToken1Balance : pairFormatted.userToken0Balance;
+  const balanceOut = isReversed ? pairFormatted.userToken0Balance : pairFormatted.userToken1Balance;
+
+  const { formattedAmountOut: amountOut, priceImpactPercent: priceImpact, isLoading: isQuoting } = useSwapQuote(amountIn, tokenIn, tokenOut);
   const { swap, isPending, isConfirming, isSuccess } = useSwap();
   const { approve, isPending: isApproving } = useApprove(tokenIn);
 
@@ -33,11 +35,6 @@ export function SwapCard() {
     if (!address || !amountIn) return;
     swap(amountIn, "0", tokenIn, tokenOut, address);
   }
-
-  // Price impact estimation
-  const priceImpact = amountIn && amountOut && Number(amountIn) > 0
-    ? Math.abs(1 - Number(amountOut) / Number(amountIn)) * 100
-    : null;
 
   return (
     <div className="w-full max-w-md mx-auto bg-gray-900 rounded-2xl p-6 border border-gray-800">
@@ -110,7 +107,7 @@ export function SwapCard() {
           <div className="flex justify-between text-gray-400">
             <span>Price Impact</span>
             <span className={priceImpact && priceImpact > 5 ? "text-red-400" : ""}>
-              ~{priceImpact?.toFixed(2)}%
+              {priceImpact?.toFixed(2)}%
             </span>
           </div>
           <div className="flex justify-between text-gray-400">
