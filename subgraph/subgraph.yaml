@@ -1,0 +1,56 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: MiniFactory
+    network: sepolia # Change to your target network
+    source:
+      address: "0x0000000000000000000000000000000000000000" # Update after deployment
+      abi: MiniFactory
+      startBlock: 0 # Update to deployment block
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Pair
+      abis:
+        - name: MiniFactory
+          file: ../out/MiniFactory.sol/MiniFactory.json
+        - name: MiniPair
+          file: ../out/MiniPair.sol/MiniPair.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
+      file: ./src/factory.ts
+templates:
+  - kind: ethereum
+    name: MiniPair
+    network: sepolia
+    source:
+      abi: MiniPair
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Pair
+        - Swap
+        - Mint
+        - Burn
+      abis:
+        - name: MiniPair
+          file: ../out/MiniPair.sol/MiniPair.json
+      eventHandlers:
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+        - event: Mint(indexed address,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,uint256,uint256,indexed address)
+          handler: handleBurn
+        - event: Sync(uint112,uint112)
+          handler: handleSync
+      file: ./src/pair.ts

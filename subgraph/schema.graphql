@@ -1,0 +1,50 @@
+type Pair @entity {
+  id: Bytes!
+  token0: Bytes!
+  token1: Bytes!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal!
+  swaps: [Swap!]! @derivedFrom(field: "pair")
+  mints: [Mint!]! @derivedFrom(field: "pair")
+  burns: [Burn!]! @derivedFrom(field: "pair")
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
+}
+
+type Swap @entity(immutable: true) {
+  id: Bytes!
+  pair: Pair!
+  sender: Bytes!
+  to: Bytes!
+  amount0In: BigDecimal!
+  amount1In: BigDecimal!
+  amount0Out: BigDecimal!
+  amount1Out: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Mint @entity(immutable: true) {
+  id: Bytes!
+  pair: Pair!
+  sender: Bytes!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Burn @entity(immutable: true) {
+  id: Bytes!
+  pair: Pair!
+  sender: Bytes!
+  to: Bytes!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
