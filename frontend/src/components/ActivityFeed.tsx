@@ -16,9 +16,9 @@ function formatTime(timestamp: number) {
 
 function ActivityRow({ item }: { item: Activity }) {
   if (item.type === "swap") {
-    const isAtoB = Number(item.amount0_in) > 0;
-    const amountIn = isAtoB ? item.amount0_in : item.amount1_in;
-    const amountOut = isAtoB ? item.amount1_out : item.amount0_out;
+    const isAtoB = Number(item.amount0In) > 0;
+    const amountIn = isAtoB ? item.amount0In : item.amount1In;
+    const amountOut = isAtoB ? item.amount1Out : item.amount0Out;
     const tokenIn = isAtoB ? "TKA" : "TKB";
     const tokenOut = isAtoB ? "TKB" : "TKA";
 
@@ -34,7 +34,7 @@ function ActivityRow({ item }: { item: Activity }) {
         </td>
         <td className="py-2 px-3 text-sm text-gray-500">{shortenAddress(item.sender)}</td>
         <td className="py-2 px-3 text-sm text-gray-500">{formatTime(item.timestamp)}</td>
-        <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.tx_hash)}</td>
+        <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.txHash)}</td>
       </tr>
     );
   }
@@ -52,7 +52,7 @@ function ActivityRow({ item }: { item: Activity }) {
         </td>
         <td className="py-2 px-3 text-sm text-gray-500">{shortenAddress(item.sender)}</td>
         <td className="py-2 px-3 text-sm text-gray-500">{formatTime(item.timestamp)}</td>
-        <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.tx_hash)}</td>
+        <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.txHash)}</td>
       </tr>
     );
   }
@@ -69,7 +69,7 @@ function ActivityRow({ item }: { item: Activity }) {
       </td>
       <td className="py-2 px-3 text-sm text-gray-500">{shortenAddress(item.sender)}</td>
       <td className="py-2 px-3 text-sm text-gray-500">{formatTime(item.timestamp)}</td>
-      <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.tx_hash)}</td>
+      <td className="py-2 px-3 text-sm text-gray-500">{shortenHash(item.txHash)}</td>
     </tr>
   );
 }
@@ -110,7 +110,7 @@ export function ActivityFeed() {
           </thead>
           <tbody>
             {activities.map((item) => (
-              <ActivityRow key={`${item.type}-${item.tx_hash}-${item.id}`} item={item} />
+              <ActivityRow key={`${item.type}-${item.txHash}-${item.id}`} item={item} />
             ))}
           </tbody>
         </table>

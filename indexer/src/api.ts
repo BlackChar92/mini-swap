@@ -1,44 +1,52 @@
 import express from "express";
 import cors from "cors";
-import { getRecentSwaps, getRecentMints, getRecentBurns, getSwapsByAddress } from "./db.js";
+import { rateLimit } from "express-rate-limit";
+import { ZodError } from "zod";
+import activityRoutes from "./routes/activity.js";
+import statsRoutes from "./routes/stats.js";
 
 const app = express();
-app.use(cors());
 
-app.get("/api/swaps", (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  res.json(getRecentSwaps(limit));
+// ─── Middleware ───
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "*",
+}));
+
+app.use(rateLimit({
+  windowMs: 60 * 1000,   // 1 minute
+  limit: 120,            // 120 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, try again later" },
+}));
+
+// ─── Routes ───
+
+app.get("/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+  });
 });
 
-app.get("/api/mints", (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  res.json(getRecentMints(limit));
-});
+app.use("/api", activityRoutes);
+app.use("/api", statsRoutes);
 
-app.get("/api/burns", (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  res.json(getRecentBurns(limit));
-});
+// ─── Error handling ───
 
-app.get("/api/swaps/:address", (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  res.json(getSwapsByAddress(req.params.address, limit));
-});
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err instanceof ZodError) {
+    res.status(400).json({
+      error: "Validation error",
+      details: err.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
+    });
+    return;
+  }
 
-app.get("/api/activity", (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 20, 100);
-  const swaps = getRecentSwaps(limit);
-  const mints = getRecentMints(limit);
-  const burns = getRecentBurns(limit);
-
-  const activity = [
-    ...swaps.map((s) => ({ ...s, type: "swap" as const })),
-    ...mints.map((m) => ({ ...m, type: "mint" as const })),
-    ...burns.map((b) => ({ ...b, type: "burn" as const })),
-  ].sort((a, b) => b.block_number - a.block_number)
-    .slice(0, limit);
-
-  res.json(activity);
+  console.error("[API Error]", err);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 export default app;

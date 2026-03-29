@@ -1,0 +1,76 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:../data/miniswap.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─── Event tables ───
+
+model Swap {
+  id          Int    @id @default(autoincrement())
+  txHash      String
+  logIndex    Int
+  blockNumber Int
+  blockHash   String
+  timestamp   Int
+  sender      String
+  toAddress   String
+  amount0In   String
+  amount1In   String
+  amount0Out  String
+  amount1Out  String
+  pair        String
+
+  @@unique([txHash, logIndex])
+  @@index([blockNumber])
+  @@index([sender])
+  @@index([pair, timestamp])
+}
+
+model Mint {
+  id          Int    @id @default(autoincrement())
+  txHash      String
+  logIndex    Int
+  blockNumber Int
+  blockHash   String
+  timestamp   Int
+  sender      String
+  amount0     String
+  amount1     String
+  pair        String
+
+  @@unique([txHash, logIndex])
+  @@index([blockNumber])
+  @@index([sender])
+  @@index([pair, timestamp])
+}
+
+model Burn {
+  id          Int    @id @default(autoincrement())
+  txHash      String
+  logIndex    Int
+  blockNumber Int
+  blockHash   String
+  timestamp   Int
+  sender      String
+  toAddress   String
+  amount0     String
+  amount1     String
+  pair        String
+
+  @@unique([txHash, logIndex])
+  @@index([blockNumber])
+  @@index([sender])
+  @@index([pair, timestamp])
+}
+
+// ─── Sync state ───
+
+model SyncState {
+  id            Int    @id @default(1)
+  lastBlock     Int    @default(0)
+  lastBlockHash String @default("")
+}
