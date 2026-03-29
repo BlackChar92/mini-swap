@@ -5,23 +5,24 @@ A minimal decentralized exchange and AMM built from scratch. Implements the cons
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                        Frontend                         │
-│              Next.js + wagmi + RainbowKit                │
-│         Swap UI / Pool UI / Activity Feed               │
-└──────────┬──────────────────────────┬───────────────────┘
-           │ write (tx)               │ read (REST)
-           ▼                          ▼
-┌─────────────────────┐   ┌─────────────────────────────┐
-│   Smart Contracts    │   │         Indexer              │
-│   (Foundry/Solidity) │◄──│  Node.js + viem             │
-│                      │   │  Event sync + REST API      │
-│  MiniFactory         │   └─────────────────────────────┘
-│  MiniPair (AMM)      │
-│  MiniRouter          │   ┌─────────────────────────────┐
-│  MockERC20           │   │    The Graph Subgraph        │
-└──────────────────────┘   │  (production alternative)    │
-                           └─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                          Frontend                             │
+│                Next.js + wagmi + RainbowKit                   │
+│           Swap UI / Pool UI / Activity Feed                   │
+└──────┬──────────────┬──────────────────────┬─────────────────┘
+       │ write (tx)   │ read (Multicall)     │ read (REST + WS)
+       ▼              ▼                      ▼
+┌─────────────────────────────┐   ┌────────────────────────────┐
+│      Smart Contracts         │   │          Indexer            │
+│      (Foundry/Solidity)      │◄──│  Node.js + Prisma + viem   │
+│                              │   │  Event sync + REST + WS    │
+│  MiniFactory                 │   │  Reorg detection + SQLite  │
+│  MiniPair (AMM)              │   └────────────────────────────┘
+│  MiniRouter                  │
+│  MiniMulticall (aggregator)  │   ┌────────────────────────────┐
+│  MockERC20                   │   │    The Graph Subgraph       │
+└──────────────────────────────┘   │  (production alternative)   │
+                                   └────────────────────────────┘
 ```
 
 ## Contracts
@@ -31,6 +32,7 @@ A minimal decentralized exchange and AMM built from scratch. Implements the cons
 | `MiniFactory` | Creates and manages trading pairs. Prevents duplicate pairs. |
 | `MiniPair` | Core AMM contract. Holds reserves, executes swaps, mints/burns LP tokens. Uses `x * y = k` invariant with 0.3% swap fee. |
 | `MiniRouter` | User-facing entry point. Handles slippage protection, deadline checks, and optimal liquidity calculation. |
+| `MiniMulticall` | Read-only aggregator. Batches 6-8 RPC calls into one: pair info, swap quotes with on-chain price impact, balances, and all pairs. |
 | `MockERC20` | Simple ERC20 token for testing. Anyone can mint. |
 
 ### Key Mechanisms
@@ -57,8 +59,8 @@ A minimal decentralized exchange and AMM built from scratch. Implements the cons
 |-------|-------|
 | Contracts | Solidity 0.8.28, Foundry |
 | Frontend | Next.js, TypeScript, wagmi v2, viem, RainbowKit, Tailwind CSS |
-| Indexer (local) | Node.js, TypeScript, viem, Express |
-| Indexer (production) | The Graph subgraph (AssemblyScript) |
+| Indexer | Node.js, TypeScript, viem, Express, Prisma + SQLite, WebSocket, Zod |
+| Indexer (production alt) | The Graph subgraph (AssemblyScript) |
 | Testing | Forge tests with fuzz testing |
 
 ## Getting Started
@@ -99,8 +101,9 @@ FACTORY_ADDRESS=<address from deploy output> pnpm dev
 
 The indexer will:
 - Discover all pairs from the factory
-- Sync historical events from genesis
+- Sync historical events with reorg detection and rollback
 - Watch for new Swap/Mint/Burn events in real-time
+- Push updates via WebSocket (`ws://localhost:3001/ws`)
 - Serve a REST API at `http://localhost:3001`
 
 ### 4. Start the frontend
@@ -121,11 +124,18 @@ Open `http://localhost:3000`. Connect a wallet (import an Anvil private key into
 
 | Endpoint | Description |
 |----------|-------------|
+| `GET /health` | Health check (uptime, timestamp) |
 | `GET /api/activity?limit=20` | Recent swaps, mints, and burns (combined, sorted by block) |
 | `GET /api/swaps?limit=50` | Recent swap events |
 | `GET /api/mints?limit=50` | Recent liquidity additions |
 | `GET /api/burns?limit=50` | Recent liquidity removals |
 | `GET /api/swaps/:address` | Swap history for a specific address |
+| `GET /api/stats/:pair` | Pool stats: 24h volume, fees, swap count |
+| `GET /api/price/:pair?hours=24` | Price history (hourly buckets) |
+| `GET /api/user/:address` | User profile: swap/mint/burn stats + total volume |
+| `WS /ws` | Real-time event push (swap, mint, burn) |
+
+All query params validated with Zod. Rate limited at 120 requests/minute.
 
 ## Testing
 
@@ -167,26 +177,30 @@ graph deploy --studio mini-swap
 mini-swap/
 ├── src/                     # Solidity contracts
 │   ├── core/                # MiniFactory, MiniPair
-│   ├── periphery/           # MiniRouter
+│   ├── periphery/           # MiniRouter, MiniMulticall
 │   ├── tokens/              # MockERC20
 │   └── libraries/           # ERC20, Math
 ├── test/                    # Forge tests
 ├── script/                  # Deploy scripts
 ├── frontend/                # Next.js frontend
 │   ├── src/
-│   │   ├── app/             # Pages (Swap, Pool)
+│   │   ├── app/             # Pages (Swap, Pool, Faucet)
 │   │   ├── components/      # UI components
 │   │   ├── hooks/           # Contract interaction hooks
 │   │   ├── config/          # wagmi + contract config
 │   │   └── abi/             # Contract ABIs
-│   └── .env.local           # Contract addresses
-├── indexer/                 # Event indexer + REST API
+│   └── .env.sepolia         # Sepolia contract addresses (committed)
+├── indexer/                 # Event indexer + REST API + WebSocket
+│   ├── prisma/
+│   │   └── schema.prisma    # Data models (Swap/Mint/Burn/SyncState)
 │   └── src/
 │       ├── index.ts         # Entry: discover pairs → sync → watch → serve
-│       ├── sync.ts          # Historical sync + real-time watching
-│       ├── api.ts           # Express REST API
-│       ├── db.ts            # JSON file storage
-│       └── events.ts        # Event ABI definitions
+│       ├── sync.ts          # Historical sync + real-time watch + reorg detection
+│       ├── api.ts           # Express middleware (CORS, rate limit, error handling)
+│       ├── ws.ts            # WebSocket real-time broadcast
+│       ├── events.ts        # Event ABI definitions
+│       ├── services/        # event.service.ts, pair.service.ts
+│       └── routes/          # activity.ts, stats.ts
 └── subgraph/                # The Graph subgraph
     ├── schema.graphql       # Entity definitions
     ├── subgraph.yaml        # Data sources + mappings
