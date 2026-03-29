@@ -2,6 +2,8 @@
 
 A minimal decentralized exchange and AMM built from scratch. Implements the constant product AMM model (x \* y = k) inspired by Uniswap V2, with a full-stack architecture: smart contracts, frontend, and event indexer.
 
+**Live Demo**: [https://frontend-seven-rose-46.vercel.app](https://frontend-seven-rose-46.vercel.app) (Sepolia Testnet)
+
 ## Architecture
 
 ```
@@ -206,6 +208,19 @@ mini-swap/
     ├── subgraph.yaml        # Data sources + mappings
     └── src/                 # AssemblyScript handlers
 ```
+
+## Sepolia Deployment
+
+| Contract | Address |
+|----------|---------|
+| Token ALPHA | [`0x57076B5CB36ECE9D1Cb30C2d81459307fddB61BE`](https://sepolia.etherscan.io/address/0x57076B5CB36ECE9D1Cb30C2d81459307fddB61BE) |
+| Token BETA | [`0x37f742f89D04A15A1c5fa5a6da85525DD1b1aF25`](https://sepolia.etherscan.io/address/0x37f742f89D04A15A1c5fa5a6da85525DD1b1aF25) |
+| Factory | [`0x1AE12704Cd62dDf6067A33bdd7e3Cb019B0a8870`](https://sepolia.etherscan.io/address/0x1AE12704Cd62dDf6067A33bdd7e3Cb019B0a8870) |
+| Router | [`0xe22BC7ea7CE10B210aCFBD4ba45a131b1E2D5286`](https://sepolia.etherscan.io/address/0xe22BC7ea7CE10B210aCFBD4ba45a131b1E2D5286) |
+| Pair (ALPHA/BETA) | [`0xb4177c1884B49d5cb1d4087A18411de7a375B441`](https://sepolia.etherscan.io/address/0xb4177c1884B49d5cb1d4087A18411de7a375B441) |
+| Multicall | [`0x936f215b436D886f24B0D118C73D13D85B962d91`](https://sepolia.etherscan.io/address/0x936f215b436D886f24B0D118C73D13D85B962d91) |
+
+All contracts are verified on Etherscan.
 
 ## License
 
