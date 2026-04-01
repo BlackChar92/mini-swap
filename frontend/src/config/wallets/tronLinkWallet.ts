@@ -1,23 +1,14 @@
 import { createConnector } from "wagmi";
 import { injected } from "wagmi/connectors";
 import type { Wallet } from "@rainbow-me/rainbowkit";
-
-function getTronLinkProvider(): unknown | undefined {
-  if (typeof window === "undefined") return undefined;
-  const tronLink = (window as unknown as Record<string, unknown>).tronLink as
-    | { ethereum?: unknown }
-    | undefined;
-  return tronLink?.ethereum;
-}
+import { getTronLinkProvider, hasTronLinkEvmProvider } from "./tronLink";
 
 const tronLinkWallet = (): Wallet => ({
   id: "tronLink",
   name: "TronLink",
   iconUrl: "https://www.tronlink.org/favicon.ico",
   iconBackground: "#fff",
-  installed:
-    typeof window !== "undefined" &&
-    !!(window as unknown as Record<string, unknown>).tronLink,
+  installed: hasTronLinkEvmProvider(),
   downloadUrls: {
     chrome:
       "https://chromewebstore.google.com/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec",

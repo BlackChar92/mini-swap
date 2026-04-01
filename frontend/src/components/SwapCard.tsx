@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { CONTRACTS } from "@/config/contracts";
 import { useSwap } from "@/hooks/useSwap";
@@ -22,18 +22,18 @@ export function SwapCard() {
   const balanceIn = isReversed ? pairFormatted.userToken1Balance : pairFormatted.userToken0Balance;
   const balanceOut = isReversed ? pairFormatted.userToken0Balance : pairFormatted.userToken1Balance;
 
-  const { formattedAmountOut: amountOut, priceImpactPercent: priceImpact, isLoading: isQuoting } = useSwapQuote(amountIn, tokenIn, tokenOut);
   const { swap, isPending, isConfirming, isSuccess } = useSwap();
+  const {
+    formattedAmountOut: amountOut,
+    priceImpactPercent: priceImpact,
+    isLoading: isQuoting,
+  } = useSwapQuote(amountIn, tokenIn, tokenOut);
   const { approve, isPending: isApproving } = useApprove(tokenIn);
 
-  // Reset input on successful swap
-  useEffect(() => {
-    if (isSuccess) setAmountIn("");
-  }, [isSuccess]);
-
-  function handleSwap() {
+  async function handleSwap() {
     if (!address || !amountIn) return;
-    swap(amountIn, "0", tokenIn, tokenOut, address);
+    await swap(amountIn, "0", tokenIn, tokenOut, address);
+    setAmountIn("");
   }
 
   return (
@@ -68,7 +68,10 @@ export function SwapCard() {
       {/* Reverse button */}
       <div className="flex justify-center -my-1 relative z-10">
         <button
-          onClick={() => { setIsReversed(!isReversed); setAmountIn(""); }}
+          onClick={() => {
+            setIsReversed(!isReversed);
+            setAmountIn("");
+          }}
           className="bg-gray-800 border-4 border-gray-900 rounded-lg p-1.5 hover:bg-gray-700 transition-colors"
         >
           <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +130,7 @@ export function SwapCard() {
           {isApproving ? "Approving..." : `Approve ${tokenInLabel}`}
         </button>
         <button
-          onClick={handleSwap}
+          onClick={() => void handleSwap()}
           disabled={!amountIn || isPending || isConfirming || !address}
           className="w-full py-3 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >

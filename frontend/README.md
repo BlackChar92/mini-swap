@@ -1,4 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Frontend
+
+Next.js frontend for MiniSwap. The app uses `wagmi` + `RainbowKit` to connect EVM wallets to the MiniSwap contracts.
+
+## Wallet Support
+
+- MetaMask, Coinbase Wallet, WalletConnect, OKX, Rabby, Trust Wallet, Phantom, and generic injected wallets are available through RainbowKit.
+- TronLink is exposed as a custom wallet option when its EVM provider is available at `window.tronLink.ethereum`.
+- The app does not talk to the native TRON chain. Supported networks are the wagmi-configured EVM chains only: local `foundry` and `sepolia`.
 
 ## Getting Started
 

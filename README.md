@@ -117,7 +117,10 @@ pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:3000`. Connect a wallet (import an Anvil private key into MetaMask), then:
+Open `http://localhost:3000`. Connect an EVM wallet, then:
+- For local Anvil development, import an Anvil private key into MetaMask.
+- TronLink is also available when its EVM provider is exposed as `window.tronLink.ethereum`.
+- This frontend only targets EVM networks configured in wagmi (`foundry` locally or `sepolia`), not native TRON chain RPC/API.
 - **Swap** tokens on the Swap page
 - **Add liquidity** on the Pool page
 - **View transaction history** in the Activity Feed (powered by the indexer)
