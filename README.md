@@ -88,7 +88,7 @@ forge test -v
 # Terminal 1: Start Anvil
 anvil
 
-# Terminal 2: Deploy contracts (auto-fills frontend/.env.local)
+# Terminal 2: Deploy contracts + local multicall (auto-fills frontend/.env.local)
 bash script/deploy-local.sh
 ```
 
@@ -124,6 +124,15 @@ Open `http://localhost:3000`. Connect an EVM wallet, then:
 - **Swap** tokens on the Swap page
 - **Add liquidity** on the Pool page
 - **View transaction history** in the Activity Feed (powered by the indexer)
+
+Recommended local startup order:
+
+1. Start `anvil`
+2. Run `bash script/deploy-local.sh`
+3. Start the indexer
+4. Start the frontend
+
+The frontend can boot without the indexer, but the activity feed will show an error until the indexer is running.
 
 ## Indexer API
 

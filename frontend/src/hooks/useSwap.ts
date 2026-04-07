@@ -1,6 +1,6 @@
-import { waitForTransactionReceipt } from "@wagmi/core";
 import { type Address, parseEther } from "viem";
 import { useConfig, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { ABIS, CONTRACTS } from "@/config/contracts";
 
 export function useSwap() {
